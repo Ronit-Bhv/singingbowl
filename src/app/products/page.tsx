@@ -1,9 +1,44 @@
-import { products } from '@/lib/products';
-import { ProductCard } from '@/components/products/product-card';
-import { Button } from '@/components/ui/button';
-import { Filter, SlidersHorizontal } from 'lucide-react';
+"use client";
+
+import { useEffect, useState } from "react";
+import type { Product } from "@/lib/types";
+import { PRODUCT_TAGS } from "@/lib/types";
+import { ProductCard } from "@/components/products/product-card";
+import { Button } from "@/components/ui/button";
+import { Filter, SlidersHorizontal, X } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ProductsPage() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        const response = await fetch("/api/products");
+        if (response.ok) {
+          const data = await response.json();
+          setProducts(data);
+        }
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProducts();
+  }, []);
+
+  const filteredProducts = selectedTag
+    ? products.filter((product) => product.tag === selectedTag)
+    : products;
+
+  const getTagLabel = (tagValue: string) => {
+    const tag = PRODUCT_TAGS.find((t) => t.value === tagValue);
+    return tag?.label || tagValue;
+  };
+
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
@@ -24,38 +59,86 @@ export default function ProductsPage() {
       <section className="py-12 md:py-16 lg:py-20">
         <div className="container">
           {/* Filter Bar */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-            <div className="flex items-center gap-2">
-              <h2 className="text-2xl font-semibold">
-                All Products
-              </h2>
-              <span className="text-muted-foreground">
-                ({products.length} items)
-              </span>
+          <div className="flex flex-col gap-4 mb-8">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div className="flex items-center gap-2">
+                <h2 className="text-2xl font-semibold">
+                  {selectedTag ? getTagLabel(selectedTag) : "All Products"}
+                </h2>
+              </div>
+              {selectedTag && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedTag(null)}
+                  className="text-muted-foreground"
+                >
+                  <X className="h-4 w-4 mr-1" />
+                  Clear filter
+                </Button>
+              )}
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm">
-                <SlidersHorizontal className="h-4 w-4 mr-2" />
-                Sort
+            
+            {/* Tag Filters */}
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant={selectedTag === null ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedTag(null)}
+              >
+                All
               </Button>
-              <Button variant="outline" size="sm">
-                <Filter className="h-4 w-4 mr-2" />
-                Filter
-              </Button>
+              {PRODUCT_TAGS.map((tag) => {
+                return (
+                  <Button
+                    key={tag.value}
+                    variant={selectedTag === tag.value ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedTag(tag.value)}
+                  >
+                    {tag.label}
+                  </Button>
+                );
+              })}
             </div>
           </div>
 
           {/* Products Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="space-y-4">
+                  <Skeleton className="aspect-square w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+              {filteredProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          )}
 
           {/* Empty State - If no products */}
-          {products.length === 0 && (
+          {!loading && filteredProducts.length === 0 && (
             <div className="text-center py-16">
-              <p className="text-lg text-muted-foreground">No products found.</p>
+              <p className="text-lg text-muted-foreground">
+                {selectedTag
+                  ? `No products found in "${getTagLabel(selectedTag)}" category.`
+                  : "No products found."}
+              </p>
+              {selectedTag && (
+                <Button
+                  variant="outline"
+                  className="mt-4"
+                  onClick={() => setSelectedTag(null)}
+                >
+                  View all products
+                </Button>
+              )}
             </div>
           )}
         </div>

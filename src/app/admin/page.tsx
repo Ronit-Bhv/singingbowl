@@ -2,10 +2,10 @@
 
 import { useAdmin } from "@/hooks/use-admin";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Package, Users, DollarSign, ShoppingCart } from "lucide-react";
+import { Package, DollarSign, ShoppingCart } from "lucide-react";
 
 export default function AdminPage() {
-  const { products, customers } = useAdmin();
+  const { products, totalRevenue, totalOrdersCount } = useAdmin();
 
   const stats = [
     {
@@ -15,35 +15,38 @@ export default function AdminPage() {
       description: "Active products in catalog",
     },
     {
-      title: "Total Customers",
-      value: customers.length,
-      icon: Users,
-      description: "Registered customers",
-    },
-    {
       title: "Total Revenue",
-      value: `$${customers.reduce((sum, c) => sum + c.totalSpent, 0).toFixed(2)}`,
+      value: `$${totalRevenue.toFixed(2)}`,
       icon: DollarSign,
       description: "All-time revenue",
     },
     {
       title: "Total Orders",
-      value: customers.reduce((sum, c) => sum + c.totalOrders, 0),
+      value: totalOrdersCount,
       icon: ShoppingCart,
       description: "All-time orders",
     },
   ];
 
+  // Sort products by createdAt (newest first) for recent products
+  const recentProducts = [...products]
+    .sort((a, b) => {
+      const dateA = (a as any).createdAt ? new Date((a as any).createdAt).getTime() : 0;
+      const dateB = (b as any).createdAt ? new Date((b as any).createdAt).getTime() : 0;
+      return dateB - dateA;
+    })
+    .slice(0, 5);
+
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold font-headline">Dashboard</h1>
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold font-headline">Dashboard</h1>
         <p className="text-muted-foreground mt-2">
           Welcome to the admin panel. Manage your products and customers.
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
@@ -65,48 +68,25 @@ export default function AdminPage() {
         })}
       </div>
 
-      <div className="mt-8 grid gap-6 md:grid-cols-2">
+      <div className="mt-6 sm:mt-8">
         <Card>
           <CardHeader>
             <CardTitle>Recent Products</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {products.slice(0, 5).map((product) => (
-                <div key={product.id} className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">{product.name}</p>
-                    <p className="text-sm text-muted-foreground">${product.price}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Top Customers</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {customers
-                .sort((a, b) => b.totalSpent - a.totalSpent)
-                .slice(0, 5)
-                .map((customer) => (
-                  <div key={customer.id} className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">{customer.name}</p>
-                      <p className="text-sm text-muted-foreground">{customer.email}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-medium">${customer.totalSpent.toFixed(2)}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {customer.totalOrders} orders
-                      </p>
+              {recentProducts.length === 0 ? (
+                <p className="text-muted-foreground text-sm">No products yet.</p>
+              ) : (
+                recentProducts.map((product) => (
+                  <div key={product.id} className="flex items-center justify-between">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium truncate">{product.name}</p>
+                      <p className="text-sm text-muted-foreground">${product.price}</p>
                     </div>
                   </div>
-                ))}
+                ))
+              )}
             </div>
           </CardContent>
         </Card>

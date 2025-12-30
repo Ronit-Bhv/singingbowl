@@ -7,7 +7,19 @@ export type Product = {
   imageUrl: string;
   imageHint: string;
   audioUrl: string;
+  tag: string;
 };
+
+export const PRODUCT_TAGS = [
+  { value: "singing-bowl", label: "Singing Bowl" },
+  { value: "beads", label: "Beads" },
+  { value: "bells", label: "Bells" },
+  { value: "incense", label: "Incense" },
+  { value: "meditation-cushion", label: "Meditation Cushion" },
+  { value: "accessories", label: "Accessories" },
+] as const;
+
+export type ProductTag = (typeof PRODUCT_TAGS)[number]["value"];
 
 export type CartItem = {
   id: string;

@@ -1,9 +1,22 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { createContext, useState, useEffect } from "react";
+import { createContext, useState, useEffect, useCallback, useMemo } from "react";
 import type { Product } from "@/lib/types";
-import { products as initialProducts } from "@/lib/products";
+
+export type Order = {
+  id: string;
+  items: {
+    productId: string;
+    productName: string;
+    price: number;
+    quantity: number;
+  }[];
+  total: number;
+  customerEmail: string;
+  customerName: string;
+  createdAt: string;
+};
 
 export type Customer = {
   id: string;
@@ -17,10 +30,16 @@ export type Customer = {
 type AdminContextType = {
   products: Product[];
   customers: Customer[];
-  addProduct: (product: Omit<Product, "id">) => void;
-  updateProduct: (id: string, product: Partial<Product>) => void;
-  deleteProduct: (id: string) => void;
+  orders: Order[];
+  loading: boolean;
+  addProduct: (product: Omit<Product, "id">) => Promise<void>;
+  updateProduct: (id: string, product: Partial<Product>) => Promise<void>;
+  deleteProduct: (id: string) => Promise<void>;
   deleteCustomer: (id: string) => void;
+  addOrder: (order: Omit<Order, "id" | "createdAt">) => void;
+  refreshProducts: () => Promise<void>;
+  totalRevenue: number;
+  totalOrdersCount: number;
 };
 
 export const AdminContext = createContext<AdminContextType | undefined>(undefined);
@@ -55,16 +74,26 @@ const mockCustomers: Customer[] = [
 export function AdminProvider({ children }: { children: ReactNode }) {
   const [products, setProducts] = useState<Product[]>([]);
   const [customers, setCustomers] = useState<Customer[]>(mockCustomers);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchProducts = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch("/api/products");
+      if (response.ok) {
+        const data = await response.json();
+        setProducts(data);
+      }
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    // Load products from localStorage or use initial products
-    const storedProducts = localStorage.getItem("admin-products");
-    if (storedProducts) {
-      setProducts(JSON.parse(storedProducts));
-    } else {
-      setProducts(initialProducts);
-      localStorage.setItem("admin-products", JSON.stringify(initialProducts));
-    }
+    fetchProducts();
 
     // Load customers from localStorage
     const storedCustomers = localStorage.getItem("admin-customers");
@@ -73,49 +102,117 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     } else {
       localStorage.setItem("admin-customers", JSON.stringify(mockCustomers));
     }
+
+    // Load orders from localStorage
+    const storedOrders = localStorage.getItem("admin-orders");
+    if (storedOrders) {
+      setOrders(JSON.parse(storedOrders));
+    }
+  }, [fetchProducts]);
+
+  const addProduct = useCallback(async (product: Omit<Product, "id">) => {
+    try {
+      const response = await fetch("/api/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(product),
+      });
+      
+      if (response.ok) {
+        const newProduct = await response.json();
+        setProducts((prev) => [...prev, newProduct]);
+      }
+    } catch (error) {
+      console.error("Error adding product:", error);
+    }
   }, []);
 
-  const addProduct = (product: Omit<Product, "id">) => {
-    const newProduct = {
-      ...product,
-      id: Date.now().toString(),
+  const updateProduct = useCallback(async (id: string, productUpdates: Partial<Product>) => {
+    try {
+      const response = await fetch(`/api/products/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(productUpdates),
+      });
+      
+      if (response.ok) {
+        const updatedProduct = await response.json();
+        setProducts((prev) =>
+          prev.map((p) => (p.id === id ? updatedProduct : p))
+        );
+      }
+    } catch (error) {
+      console.error("Error updating product:", error);
+    }
+  }, []);
+
+  const deleteProduct = useCallback(async (id: string) => {
+    try {
+      const response = await fetch(`/api/products/${id}`, {
+        method: "DELETE",
+      });
+      
+      if (response.ok) {
+        setProducts((prev) => prev.filter((p) => p.id !== id));
+      }
+    } catch (error) {
+      console.error("Error deleting product:", error);
+    }
+  }, []);
+
+  const deleteCustomer = useCallback((id: string) => {
+    setCustomers((prev) => {
+      const updatedCustomers = prev.filter((c) => c.id !== id);
+      localStorage.setItem("admin-customers", JSON.stringify(updatedCustomers));
+      return updatedCustomers;
+    });
+  }, []);
+
+  const refreshProducts = useCallback(async () => {
+    await fetchProducts();
+  }, [fetchProducts]);
+
+  const addOrder = useCallback((order: Omit<Order, "id" | "createdAt">) => {
+    const newOrder: Order = {
+      ...order,
+      id: crypto.randomUUID(),
+      createdAt: new Date().toISOString(),
     };
-    const updatedProducts = [...products, newProduct];
-    setProducts(updatedProducts);
-    localStorage.setItem("admin-products", JSON.stringify(updatedProducts));
-  };
+    setOrders((prev) => {
+      const updatedOrders = [newOrder, ...prev];
+      localStorage.setItem("admin-orders", JSON.stringify(updatedOrders));
+      return updatedOrders;
+    });
+  }, []);
 
-  const updateProduct = (id: string, productUpdates: Partial<Product>) => {
-    const updatedProducts = products.map((p) =>
-      p.id === id ? { ...p, ...productUpdates } : p
-    );
-    setProducts(updatedProducts);
-    localStorage.setItem("admin-products", JSON.stringify(updatedProducts));
-  };
+  const totalRevenue = useMemo(() => {
+    return orders.reduce((sum, order) => sum + order.total, 0);
+  }, [orders]);
 
-  const deleteProduct = (id: string) => {
-    const updatedProducts = products.filter((p) => p.id !== id);
-    setProducts(updatedProducts);
-    localStorage.setItem("admin-products", JSON.stringify(updatedProducts));
-  };
+  const totalOrdersCount = useMemo(() => {
+    return orders.length;
+  }, [orders]);
 
-  const deleteCustomer = (id: string) => {
-    const updatedCustomers = customers.filter((c) => c.id !== id);
-    setCustomers(updatedCustomers);
-    localStorage.setItem("admin-customers", JSON.stringify(updatedCustomers));
-  };
+  const value = useMemo(
+    () => ({
+      products,
+      customers,
+      orders,
+      loading,
+      addProduct,
+      updateProduct,
+      deleteProduct,
+      deleteCustomer,
+      addOrder,
+      refreshProducts,
+      totalRevenue,
+      totalOrdersCount,
+    }),
+    [products, customers, orders, loading, addProduct, updateProduct, deleteProduct, deleteCustomer, addOrder, refreshProducts, totalRevenue, totalOrdersCount]
+  );
 
   return (
-    <AdminContext.Provider
-      value={{
-        products,
-        customers,
-        addProduct,
-        updateProduct,
-        deleteProduct,
-        deleteCustomer,
-      }}
-    >
+    <AdminContext.Provider value={value}>
       {children}
     </AdminContext.Provider>
   );

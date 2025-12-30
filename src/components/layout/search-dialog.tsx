@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,7 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { products } from "@/lib/products";
+import type { Product } from "@/lib/types";
 import { ProductCard } from "@/components/products/product-card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +28,24 @@ export function SearchDialog() {
   const [searchQuery, setSearchQuery] = useState("");
   const [priceRange, setPriceRange] = useState([0, 300]);
   const [showFilters, setShowFilters] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        const response = await fetch("/api/products");
+        if (response.ok) {
+          const data = await response.json();
+          setProducts(data);
+        }
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    }
+    if (open) {
+      fetchProducts();
+    }
+  }, [open]);
 
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
@@ -41,7 +59,7 @@ export function SearchDialog() {
 
       return matchesSearch && matchesPrice;
     });
-  }, [searchQuery, priceRange]);
+  }, [searchQuery, priceRange, products]);
 
   const handleClearFilters = () => {
     setSearchQuery("");

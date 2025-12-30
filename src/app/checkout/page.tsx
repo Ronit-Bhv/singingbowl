@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { useCart } from "@/hooks/use-cart";
+import { useAdmin } from "@/hooks/use-admin";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -36,6 +37,7 @@ const formSchema = z.object({
 
 export default function CheckoutPage() {
   const { cartItems, totalPrice, clearCart } = useCart();
+  const { addOrder } = useAdmin();
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -56,10 +58,27 @@ export default function CheckoutPage() {
     },
   });
 
+  const shippingCost = 5.00;
+  const taxes = totalPrice * 0.08;
+  const grandTotal = totalPrice + shippingCost + taxes;
+
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     // Simulate payment processing
     setTimeout(() => {
+      // Save the order
+      addOrder({
+        items: cartItems.map((item) => ({
+          productId: item.id,
+          productName: item.name,
+          price: item.price,
+          quantity: item.quantity,
+        })),
+        total: grandTotal,
+        customerEmail: values.email,
+        customerName: values.shippingName,
+      });
+
       clearCart();
       toast({
         title: "Order Placed!",
@@ -79,10 +98,6 @@ export default function CheckoutPage() {
       </div>
     )
   }
-
-  const shippingCost = 5.00;
-  const taxes = totalPrice * 0.08;
-  const grandTotal = totalPrice + shippingCost + taxes;
 
   return (
     <div className="container mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">

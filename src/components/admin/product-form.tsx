@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAdmin } from "@/hooks/use-admin";
 import type { Product } from "@/lib/types";
+import { PRODUCT_TAGS } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -15,6 +16,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 
 type ProductFormProps = {
@@ -34,7 +42,35 @@ export function ProductForm({ product, open, onOpenChange }: ProductFormProps) {
     imageUrl: product?.imageUrl || "",
     imageHint: product?.imageHint || "",
     audioUrl: product?.audioUrl || "",
+    tag: product?.tag || "singing-bowl",
   });
+
+  // Update form data when product prop changes (for edit mode)
+  useEffect(() => {
+    if (product) {
+      setFormData({
+        name: product.name || "",
+        slug: product.slug || "",
+        description: product.description || "",
+        price: product.price?.toString() || "",
+        imageUrl: product.imageUrl || "",
+        imageHint: product.imageHint || "",
+        audioUrl: product.audioUrl || "",
+        tag: product.tag || "singing-bowl",
+      });
+    } else {
+      setFormData({
+        name: "",
+        slug: "",
+        description: "",
+        price: "",
+        imageUrl: "",
+        imageHint: "",
+        audioUrl: "",
+        tag: "singing-bowl",
+      });
+    }
+  }, [product]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,6 +92,7 @@ export function ProductForm({ product, open, onOpenChange }: ProductFormProps) {
       imageUrl: formData.imageUrl || "https://picsum.photos/seed/placeholder/600/400",
       imageHint: formData.imageHint || "singing bowl",
       audioUrl: formData.audioUrl || "",
+      tag: formData.tag,
     };
 
     if (product) {
@@ -81,6 +118,7 @@ export function ProductForm({ product, open, onOpenChange }: ProductFormProps) {
       imageUrl: "",
       imageHint: "",
       audioUrl: "",
+      tag: "singing-bowl",
     });
   };
 
@@ -152,15 +190,6 @@ export function ProductForm({ product, open, onOpenChange }: ProductFormProps) {
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="imageHint">Image Hint</Label>
-              <Input
-                id="imageHint"
-                value={formData.imageHint}
-                onChange={(e) => setFormData({ ...formData, imageHint: e.target.value })}
-                placeholder="singing bowl"
-              />
-            </div>
-            <div className="grid gap-2">
               <Label htmlFor="audioUrl">Audio URL</Label>
               <Input
                 id="audioUrl"
@@ -168,6 +197,26 @@ export function ProductForm({ product, open, onOpenChange }: ProductFormProps) {
                 onChange={(e) => setFormData({ ...formData, audioUrl: e.target.value })}
                 placeholder="https://example.com/audio.mp3"
               />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="tag">
+                Category <span className="text-red-500">*</span>
+              </Label>
+              <Select
+                value={formData.tag}
+                onValueChange={(value) => setFormData({ ...formData, tag: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {PRODUCT_TAGS.map((tag) => (
+                    <SelectItem key={tag.value} value={tag.value}>
+                      {tag.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter>

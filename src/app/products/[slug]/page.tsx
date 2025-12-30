@@ -2,12 +2,12 @@
 
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { ShoppingCart, CheckCircle, Star, Heart, Play, Pause } from "lucide-react";
-import { useState, useRef, use } from "react";
+import { ShoppingCart, CheckCircle, Heart, Play, Pause } from "lucide-react";
+import { useState, useRef, use, useEffect } from "react";
 
-import { products } from "@/lib/products";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useCart } from "@/hooks/use-cart";
 import { useWishlist } from "@/hooks/use-wishlist";
 import { useToast } from "@/hooks/use-toast";
@@ -20,9 +20,56 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
   const { toast } = useToast();
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   
   const { slug } = use(params);
-  const product = products.find((p) => p.slug === slug);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [productRes, allProductsRes] = await Promise.all([
+          fetch(`/api/products/${slug}`),
+          fetch("/api/products"),
+        ]);
+        
+        if (productRes.ok) {
+          const productData = await productRes.json();
+          setProduct(productData);
+        }
+        
+        if (allProductsRes.ok) {
+          const allProductsData = await allProductsRes.json();
+          setAllProducts(allProductsData);
+        }
+      } catch (error) {
+        console.error("Error fetching product:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, [slug]);
+
+  if (loading) {
+    return (
+      <div className="container py-8 md:py-12">
+        <div className="grid md:grid-cols-2 gap-8 lg:gap-16">
+          <Skeleton className="aspect-[4/3] w-full rounded-lg" />
+          <div className="space-y-4">
+            <Skeleton className="h-10 w-3/4" />
+            <Skeleton className="h-8 w-1/4" />
+            <Skeleton className="h-24 w-full" />
+            <div className="flex gap-3">
+              <Skeleton className="h-12 w-40" />
+              <Skeleton className="h-12 w-40" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!product) {
     notFound();
@@ -82,7 +129,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
   };
 
   // Get recommended products (exclude current product)
-  const recommendedProducts = products
+  const recommendedProducts = allProducts
     .filter((p) => p.id !== product.id)
     .slice(0, 4);
   
