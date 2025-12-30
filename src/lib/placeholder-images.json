@@ -1,0 +1,52 @@
+{
+  "placeholderImages": [
+    {
+      "id": "zen-harmony-bowl",
+      "description": "A beautifully crafted bowl for deep meditation.",
+      "imageUrl": "https://images.unsplash.com/photo-1619968747465-f56008f0da50?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxzaW5naW5nJTIwYm93bHxlbnwwfHx8fDE3NjcwMzA0MzF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "singing bowl"
+    },
+    {
+      "id": "resonance-master-bowl",
+      "description": "A large bowl with powerful sound projection for sound healing practitioners.",
+      "imageUrl": "https://images.unsplash.com/photo-1579291465630-7fff7a9bb8b3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxzb3VuZCUyMGhlYWxpbmd8ZW58MHx8fHwxNzY3MDMwNDMxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "sound healing"
+    },
+    {
+      "id": "serenity-now-bowl",
+      "description": "Compact and easy to transport, this bowl brings instant calm.",
+      "imageUrl": "https://images.unsplash.com/photo-1633015690070-df90035bca9d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxtZWRpdGF0aW9uJTIwYm93bHxlbnwwfHx8fDE3NjcwMzA0MzF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "meditation bowl"
+    },
+    {
+      "id": "tibetan-thunder-bowl",
+      "description": "A traditional Tibetan bowl with a deep, resonant hum.",
+      "imageUrl": "https://images.unsplash.com/photo-1633015691473-86db52be1e1a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHx0aWJldGFuJTIwYm93bHxlbnwwfHx8fDE3NjcwMzA0MzF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "tibetan bowl"
+    },
+    {
+      "id": "crystal-chakra-bowl",
+      "description": "A frosted crystal bowl tuned to the heart chakra.",
+      "imageUrl": "https://images.unsplash.com/photo-1619234103666-54785fa47540?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjcnlzdGFsJTIwYm93bHxlbnwwfHx8fDE3NjcwMzA0MzF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "crystal bowl"
+    },
+    {
+      "id": "himalayan-heart-bowl",
+      "description": "Hand-hammered in the Himalayas, perfect for loving-kindness meditation.",
+      "imageUrl": "https://images.unsplash.com/photo-1645197983085-c48fa0a5de6d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxoaW1hbGF5YW4lMjBib3dsfGVufDB8fHx8MTc2NzAzMDQzMXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "himalayan bowl"
+    },
+    {
+      "id": "meditation-woman",
+      "description": "Woman meditating with a singing bowl",
+      "imageUrl": "https://images.unsplash.com/photo-1686243694059-0d5333940670?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxtZWRpdGF0aW9uJTIwd29tYW58ZW58MHx8fHwxNzY3MDMxNTIyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "meditation woman"
+    },
+    {
+      "id": "hero-background",
+      "description": "Meditative background with singing bowls",
+      "imageUrl": "https://images.unsplash.com/photo-1696527014333-d559315ddc9c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxtZWRpdGF0aW9uJTIwYmFja2dyb3VuZHxlbnwwfHx8fDE3NjcwMzE1MjJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "meditation background"
+    }
+  ]
+}
